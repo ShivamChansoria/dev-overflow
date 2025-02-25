@@ -3,6 +3,7 @@ import "./globals.css";
 import localFont from "next/font/local";
 import ThemeProvider from "@/context/Theme";
 import Navbar from "@/components/navigation/navbar";
+import { Toaster } from "sonner";
 
 const inter = localFont({
   src: "./fonts/Inter.ttf",
@@ -41,6 +42,7 @@ export default function RootLayout({
           <Navbar />
           {children}
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );
