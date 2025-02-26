@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { signIn } from "next-auth/react";
 import ROUTES from "@/constants/routes";
 
-const SocialAuth = ({ children }: { children: ReactNode }) => {
+const SocialAuth = () => {
   const handleSignIn = async (provider: "github" | "google") => {
     try {
       await signIn(provider, {
@@ -36,7 +36,7 @@ const SocialAuth = ({ children }: { children: ReactNode }) => {
           height={20}
           className="invert-colors mr-2.5 object-contain"
         />
-        <span>{children} with GitHub</span>
+        <span>Sign in with GitHub</span>
       </Button>
       <Button
         className="background-dark400_light900 body-medium text-dark200_light800 rounded-2 min-h-12 flex-1 px-4 py-3"
@@ -49,7 +49,7 @@ const SocialAuth = ({ children }: { children: ReactNode }) => {
           height={20}
           className=" mr-2.5 object-contain"
         />
-        <span>{children} with Google</span>
+        <span>Sign in with Google</span>
       </Button>
     </div>
   );
