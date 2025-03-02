@@ -5,7 +5,7 @@ interface SearchParams {
 }
 
 const Home = async ({ searchParams }: SearchParams) => {
-  return <>Home</>;
+  return <div>Home</div>;
 };
 
 export default Home;
