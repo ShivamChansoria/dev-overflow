@@ -1,3 +1,5 @@
+import QuestionCard from "@/components/cards/QuestionCard";
+import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/Search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
@@ -38,7 +40,7 @@ const questions = [
   },
 ];
 const Home = async ({ searchParams }: SearchParams) => {
-  const { query } = await searchParams; //Getting query as promise from searchParams
+  const { query, filter } = await searchParams; //Getting query as promise from searchParams
   const filteredQuestions = questions.filter((question) => {
     if (query && question.title) {
       return question.title.toLowerCase().includes(query.toLowerCase());
@@ -64,11 +66,10 @@ const Home = async ({ searchParams }: SearchParams) => {
           otherClasses="flex-1"
         />
       </section>
-
+      <HomeFilter />
       <div className="mt-10 flex w-full flex-col gap-6">
-        Home Filter
         {filteredQuestions.map((question) => (
-          <h1 key={question._id}>{question.title}</h1>
+          <QuestionCard /key={question._id} question={question} />
         ))}
       </div>
     </>
