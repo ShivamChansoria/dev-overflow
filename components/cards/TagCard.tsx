@@ -7,7 +7,11 @@ import { getDeviconClassName } from "@/lib/utils";
 interface Props {
   _id: string;
   name: string;
+<<<<<<< HEAD
   questions: number;
+=======
+  questions?: number;
+>>>>>>> 369607c (added Question Card)
   showCount?: boolean;
   compact?: boolean;
 }

@@ -13,4 +13,12 @@ interface Question {
   _id: string;
   title: string;
   tags: Tag[];
+<<<<<<< HEAD
+=======
+  author: Author;
+  createdAt: Date;
+  upvotes: number;
+  answers: number;
+  views: number;
+>>>>>>> 369607c (added Question Card)
 }
