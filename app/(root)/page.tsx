@@ -19,8 +19,6 @@ const questions = [
       { _id: "1", name: "React" },
       { _id: "2", name: "JavaScript" },
     ],
-<<<<<<< HEAD
-=======
     author: {
       _id: "1",
       name: "John Doe",
@@ -31,7 +29,6 @@ const questions = [
     upvotes: 10,
     answers: 5,
     views: 100,
->>>>>>> 369607c (added Question Card)
   },
   {
     _id: "2",
@@ -41,8 +38,6 @@ const questions = [
       { _id: "1", name: "Next.js" },
       { _id: "2", name: "JavaScript" },
     ],
-<<<<<<< HEAD
-=======
     author: {
       _id: "2",
       name: "John Doe",
@@ -53,7 +48,6 @@ const questions = [
     upvotes: 15,
     answers: 3,
     views: 135,
->>>>>>> 369607c (added Question Card)
   },
   {
     _id: "3",
@@ -63,8 +57,6 @@ const questions = [
       { _id: "1", name: "Node.js" },
       { _id: "2", name: "JavaScript" },
     ],
-<<<<<<< HEAD
-=======
     author: {
       _id: "2",
       name: "John Doe",
@@ -75,7 +67,6 @@ const questions = [
     upvotes: 14,
     answers: 2,
     views: 64,
->>>>>>> 369607c (added Question Card)
   },
 ];
 const Home = async ({ searchParams }: SearchParams) => {
@@ -84,11 +75,7 @@ const Home = async ({ searchParams }: SearchParams) => {
     if (query && question.title) {
       return question.title.toLowerCase().includes(query.toLowerCase());
     }
-<<<<<<< HEAD
     return false; // Exclude this item if query or question.title is undefined
-=======
-    return questions; // Exclude this item if query or question.title is undefined
->>>>>>> 369607c (added Question Card)
   });
   return (
     <>
@@ -112,11 +99,7 @@ const Home = async ({ searchParams }: SearchParams) => {
       <HomeFilter />
       <div className="mt-10 flex w-full flex-col gap-6">
         {filteredQuestions.map((question) => (
-<<<<<<< HEAD
-          <QuestionCard /key={question._id} question={question} />
-=======
           <QuestionCard key={question._id} question={question} />
->>>>>>> 369607c (added Question Card)
         ))}
       </div>
     </>

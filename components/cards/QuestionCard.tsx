@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import React from "react";
-
-const QuestionCard = ({ Question }) => {
-  return <div></div>;
-=======
 import ROUTES from "@/constants/routes";
 import { getTimeStamp } from "@/lib/utils";
 import Link from "next/link";
@@ -70,7 +64,6 @@ const QuestionCard = ({
       </div>
     </div>
   );
->>>>>>> 369607c (added Question Card)
 };
 
 export default QuestionCard;

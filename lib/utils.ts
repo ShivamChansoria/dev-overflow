@@ -50,11 +50,7 @@ export const getDeviconClassName = (techName: string) => {
     : "devicon-devicon-plain";
 };
 
-<<<<<<< HEAD
-export const getTimeStamp = (createdAt: Date) => {
-=======
 export const getTimeStamp = (createdAt: Date): string => {
->>>>>>> 369607c (added Question Card)
   const date = new Date(createdAt);
   const now = new Date();
 
