@@ -3,6 +3,10 @@ import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/Search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
+import handleError from "@/lib/handlers/error";
+import { NotFoundError, ValidationError } from "@/lib/http-errors";
+import { log } from "console";
+import { Tags } from "lucide-react";
 import Link from "next/link";
 import { title } from "process";
 
@@ -69,7 +73,20 @@ const questions = [
     views: 64,
   },
 ];
+// const test = async () => {
+//   try {
+//     throw new ValidationError({
+//       title: ["test"],
+//       tags: ["Javascript is not a valid tag."]
+//     })
+//   } catch (error) {
+//     return handleError(error);
+//   }
+// };
 const Home = async ({ searchParams }: SearchParams) => {
+  // const res = await test();
+  // console.log(res);
+
   const { query, filter } = await searchParams; //Getting query as promise from searchParams
   const filteredQuestions = questions.filter((question) => {
     if (query && question.title) {
