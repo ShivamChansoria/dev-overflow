@@ -111,3 +111,33 @@ export const UserSchema = z.object({
     .url({ message: "Please provide a valid portfolio URL." })
     .optional(),
 });
+
+export const AccountSchema = z.object({
+  userId: z.string().min(1, { message: "User ID is required." }),
+
+  name: z
+    .string()
+    .min(1, { message: "Name is required." })
+    .max(50, { message: "Name cannot exceed 50 characters." }),
+
+  image: z
+    .string()
+    .url({ message: "Please provide a valid image URL." })
+    .optional(),
+
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long." })
+    .max(30, { message: "Password cannot exceed 30 characters." })
+    .regex(/^[a-zA-Z0-9_-]+$/, {
+      message:
+        "Password can only contain letters, numbers, underscores and hyphens.",
+    })
+    .optional(),
+
+  provider: z.string().min(1, { message: "Provider is required." }),
+
+  providerAccountId: z
+    .string()
+    .min(1, { message: "Provider Account ID is required." }),
+});
