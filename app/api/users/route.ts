@@ -1,9 +1,10 @@
 import User from "@/database/user.model";
 import handleError from "@/lib/handlers/error";
 import { ValidationError } from "@/lib/http-errors";
+import logger from "@/lib/logger";
 import dbConnect from "@/lib/mongoose";
 import { UserSchema } from "@/lib/validation";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
 
     const users =
       await User.find(); /*Getting the users from UserModel ---> database.ts */
+    return NextResponse.json({ success: true, data: users }, { status: 200 });
   } catch (error) {
     return handleError(error, "api") as APIErrorResponse;
   }
@@ -49,8 +51,8 @@ export async function POST(request: NextRequest) {
 
     // Create new user
     const newUser = await User.create(validateData.data);
-
-    return Response.json(
+    logger.info(`User ${newUser.username} created successfully`);
+    return NextResponse.json(
       {
         success: true,
         data: newUser,
