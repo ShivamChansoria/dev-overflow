@@ -3,6 +3,7 @@ import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/Search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
+import { api } from "@/lib/api";
 import handleError from "@/lib/handlers/error";
 import { NotFoundError, ValidationError } from "@/lib/http-errors";
 import logger from "@/lib/logger";
@@ -74,19 +75,16 @@ const questions = [
     views: 64,
   },
 ];
-// const test = async () => {
-//   try {
-//     throw new ValidationError({
-//       title: ["test"],
-//       tags: ["Javascript is not a valid tag."]
-//     })
-//   } catch (error) {
-//     return handleError(error);
-//   }
-// };
+const test = async () => {
+  try {
+    return await api.users.getAll();
+  } catch (error) {
+    return handleError(error);
+  }
+};
 const Home = async ({ searchParams }: SearchParams) => {
-  // const res = await test();
-  // logger.error(res);
+  const res = await test();
+  logger.info(res);
 
   const { query, filter } = await searchParams; //Getting query as promise from searchParams
   const filteredQuestions = questions.filter((question) => {
