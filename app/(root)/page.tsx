@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import QuestionCard from "@/components/cards/QuestionCard";
 import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/Search/LocalSearch";
@@ -83,8 +84,15 @@ const test = async () => {
   }
 };
 const Home = async ({ searchParams }: SearchParams) => {
-  const res = await test();
-  logger.info(res);
+  const session = await auth();
+
+  // Log session directly using the logger
+  if (session) {
+    logger.info({
+      type: "session",
+      data: session,
+    });
+  }
 
   const { query, filter } = await searchParams; //Getting query as promise from searchParams
   const filteredQuestions = questions.filter((question) => {
