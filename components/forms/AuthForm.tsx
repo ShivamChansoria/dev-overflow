@@ -24,11 +24,13 @@ import {
 import { Input } from "@/components/ui/input";
 import ROUTES from "@/constants/routes";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
   defaultValues: T;
-  onSubmit: (data: T) => Promise<{ sucess: boolean }>;
+  onSubmit: (data: T) => Promise<ActionResponse>;
   formType: "SIGN_IN" | "SIGN_UP";
 }
 const AuthForm = ({
@@ -46,12 +48,24 @@ const AuthForm = ({
   //Creating the button type passing the button as Sign-in / Sign-up
   const buttonText = formType === "SIGN_IN" ? "Sign in" : "Sign Up";
 
+  const router = useRouter();
   // 2. Define a submit handler.
-  const handleSubmit: SubmitHandler<T> = async () => {};
+  const handleSubmit: SubmitHandler<T> = async (data) => {
+    const result = (await onSubmit(data)) as ActionResponse;
+    if (result.success) {
+      toast.success(formType === "SIGN_IN" ?
+        "Sign In successful" :
+        "Sign Up successful");
+      router.push(ROUTES.HOME);
+    }
+    else {
+      toast.error(result?.status);
+    }
+  };
   return (
     <Form {...form}>
       {buttonText}
-      <form onSubmit={form.handleSubmit(onSubmit)} className="mt-10 space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="mt-10 space-y-6">
         {Object.keys(defaultValues).map((field) => (
           <FormField
             key={field}
@@ -80,13 +94,14 @@ const AuthForm = ({
         ))}
 
         <Button
+          type="submit"
           className="primary-gradient paragraph-medium min-h-12 w-full rounded-2 px-4 py-3 font-inter !text-light-900"
           disabled={form.formState.isSubmitting}
         >
           {form.formState.isSubmitting
             ? buttonText === "Sign Up"
-              ? "Signin Up..."
-              : "Signinig In..."
+              ? "Signing Up..."
+              : "Signing In..."
             : buttonText}
         </Button>
         {formType === "SIGN_IN" ? (
