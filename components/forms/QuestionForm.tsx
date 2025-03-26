@@ -22,13 +22,18 @@ import { MDXEditorMethods } from "@mdxeditor/editor";
 import dynamic from "next/dynamic";
 import TagCard from "../cards/TagCard";
 import { useRouter } from "next/navigation";
-import { createQuestion } from "@/lib/actions/question.action";
+import { createQuestion, editQuestion } from "@/lib/actions/question.action";
 import { toast } from "sonner";
 import ROUTES from "@/constants/routes";
 import { ReloadIcon } from "@radix-ui/react-icons";
 const Editor = dynamic(() => import("@/components/Editor/index"), { ssr: false });
 
-const QuestionForm = () => {
+interface Params {
+  question?: Question;
+  isEdit?: boolean;
+}
+
+const QuestionForm = ({ question, isEdit }: Params) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -66,22 +71,32 @@ const QuestionForm = () => {
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
     defaultValues: {
-      title: "",
-      content: "",
-      tags: [],
+      title: question?.title || "",
+      content: question?.content || "",
+      tags: question?.tags.map((tag) => tag.name) || [],
     },
   });
   const editorRef = useRef<MDXEditorMethods>(null);
 
   const handleCreateQuestion = async (data: z.infer<typeof AskQuestionSchema>) => {
+
     startTransition(async () => {
-      const result = await createQuestion(data);
-      if (result.success) {
-        toast.success("Question created successfully");
-        if (result.data) router.push(ROUTES.QUESTION(result.data._id));
-      }
-      else {
-        toast.error(result.error?.message || "Something went wrong");
+      if (isEdit && question) {
+        const result = await editQuestion({ questionId: question?._id, ...data });/* Updating the edited question by spreading the data. */
+        if (result.success) {
+          toast.success("Question updated successfully");
+          if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+        } else {
+          toast.error(result.error?.message || "Something went wrong");
+        }
+      } else {
+        const result = await createQuestion(data);
+        if (result.success) {
+          toast.success("Question created successfully");
+          if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+        } else {
+          toast.error(result.error?.message || "Something went wrong");
+        }
       }
     });
   };
@@ -190,7 +205,7 @@ const QuestionForm = () => {
               <ReloadIcon className="mr-2 size-4 animate-spin" />
               Asking...
             </>) : (<>
-              Ask A Question
+              {isEdit ? "Edit" : "Ask A Question"}
             </>)}
           </Button>
         </div>
