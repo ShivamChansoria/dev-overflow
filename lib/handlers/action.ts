@@ -65,9 +65,9 @@ async function action<T>({
   }
 
   // Step 2: Authentication Check
-  let session: Session | null = null;
+  let session = null;
   if (authorize) {
-    const session = await auth(); // Get the current session
+    session = await auth(); // Get the current session
     if (!session) {
       // If authorization is required but no session exists, return UnauthorizedError
       return new UnauthorizedError("You must be logged in");
