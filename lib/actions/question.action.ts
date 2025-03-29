@@ -36,10 +36,14 @@
  */
 
 import action from "@/lib/handlers/action";
-import { AskQuestionSchema, GetQuestionSchema } from "../validation";
+import {
+  AskQuestionSchema,
+  GetQuestionSchema,
+  PaginatedSearchParamsSchema,
+} from "../validation";
 import handleError from "../handlers/error";
-import mongoose from "mongoose";
-import Question from "@/database/questions.model";
+import mongoose, { FilterQuery } from "mongoose";
+import Question, { IQuestionDoc } from "@/database/questions.model";
 import Tag, { ITag, ITagDoc } from "@/database/tag.model";
 import TagQuestion from "@/database/tag-question.model";
 import { toast } from "sonner";
@@ -151,7 +155,7 @@ export async function createQuestion(
 
 export async function editQuestion(
   params: EditQuestionParams
-): Promise<ActionResponse<Question>> {
+): Promise<ActionResponse<IQuestionDoc>> {
   // Step 1: Validate request parameters and check user authorization
   // This ensures the request is properly formatted and the user is authenticated
   const validationResult = await action({
@@ -238,7 +242,10 @@ export async function editQuestion(
         { session }
       );
       question.tags = question.tags.filter(
-        (tagId: mongoose.Types.ObjectId) => !tagIdsToRemove.includes(tagId)
+        (tag: mongoose.Types.ObjectId) =>
+          !tagIdsToRemove.some((id: mongoose.Types.ObjectId) =>
+            id.equals(tag._id)
+          )
       );
       if (newTagDocuments.length > 0) {
         await TagQuestion.insertMany(newTagDocuments, { session });
@@ -296,6 +303,123 @@ export async function getQuestion(
     }
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getQuestions(
+  params: PaginatedSearchParams
+): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+  // Step 1: Validate request parameters
+  // This ensures the request contains valid pagination, sorting, and filtering parameters
+  const validationResult = await action({
+    params,
+    schema: PaginatedSearchParamsSchema,
+    authorize: false, // No authentication required for viewing questions
+  });
+
+  // Step 2: Handle validation errors
+  // If the parameters don't match the schema, return an error response
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  // Step 3: Extract validated data from the request
+  // Destructure the parameters with default values for pagination
+  const {
+    page = 1, // Default to first page if not specified
+    pageSize = 10, // Default to 10 items per page if not specified
+    sort, // Optional sorting criteria
+    query, // Optional search query
+    filter, // Optional filter criteria
+  } = validationResult.params!;
+
+  // Step 4: Calculate pagination parameters
+  // Convert page and pageSize to numbers and calculate how many items to skip
+  const skip = (Number(page) - 1) * Number(pageSize);
+  const limit = Number(pageSize);
+
+  // Step 5: Initialize the MongoDB query filter
+  // This object will be used to build the database query
+  const filterQuery: FilterQuery<typeof Question> = {};
+
+  // Step 6: Handle special filter cases
+  // If filter is "recommended", return empty results (placeholder for future implementation)
+  if (filter === "recommended") {
+    return {
+      success: true,
+      data: {
+        questions: [],
+        isNext: false,
+      },
+    };
+  }
+
+  // Step 7: Add search query if provided
+  // If a search query exists, search in both title and content fields (case-insensitive)
+  if (query) {
+    filterQuery.$or = [
+      { title: { $regex: new RegExp(query, "i") } },
+      { content: { $regex: new RegExp(query, "i") } },
+    ];
+  }
+
+  // Step 8: Add tag filter if provided
+  // If a tag filter is specified, filter questions by that tag
+  if (filter) {
+    filterQuery.tags = { $in: [filter] };
+  }
+
+  // Step 9: Define sorting criteria
+  // Set up the sorting object based on the filter parameter
+  let sortCriteria = {};
+
+  // Step 10: Apply specific sorting rules based on filter
+  switch (filter) {
+    case "newest":
+      sortCriteria = { createdAt: -1 }; // Sort by newest first
+      break;
+    case "unanswered":
+      filterQuery.answers = 0; // Filter for questions with no answers
+      sortCriteria = { answers: 1 }; // Sort by least answers first
+      break;
+    case "popular":
+      sortCriteria = { upvotes: -1 }; // Sort by most upvotes first
+      break;
+    default:
+      sortCriteria = { createdAt: -1 }; // Default to newest first
+  }
+
+  try {
+    // Step 11: Execute the database query
+    // Find questions matching the filter, populate related data, and apply pagination
+    const questions = await Question.find(filterQuery)
+      .populate("tags", "name") // Populate tag names
+      // .populate("author", "name image") // Populate author info
+      .lean() // Convert to plain JavaScript objects
+      .sort(sortCriteria) // Apply sorting
+      .skip(skip) // Skip for pagination
+      .limit(limit); // Limit results per page
+
+    // Step 12: Count total matching documents
+    // This is used to determine if there are more pages
+    const totalQuestions = await Question.countDocuments(filterQuery);
+
+    // Step 13: Determine if there are more questions
+    // Check if there are more questions beyond the current page
+    const isNext = totalQuestions > skip + questions.length;
+
+    // Step 14: Return the results
+    // Return the questions, pagination info, and success status
+    return {
+      success: true,
+      data: {
+        questions: JSON.parse(JSON.stringify(questions)), // Deep clone to remove Mongoose metadata
+        isNext,
+      },
+    };
+  } catch (error) {
+    // Step 15: Handle any errors that occur during the process
     return handleError(error) as ErrorResponse;
   }
 }
