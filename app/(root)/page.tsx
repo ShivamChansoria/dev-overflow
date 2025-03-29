@@ -1,9 +1,11 @@
 import { auth } from "@/auth";
 import QuestionCard from "@/components/cards/QuestionCard";
+import DataRenderer from "@/components/DataRenderer";
 import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/Search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
+import { EMPTY_QUESTION } from "@/constants/states";
 import { getQuestions } from "@/lib/actions/question.action";
 import { api } from "@/lib/api";
 import handleError from "@/lib/handlers/error";
@@ -13,11 +15,16 @@ import { log } from "console";
 import { Tags } from "lucide-react";
 import Link from "next/link";
 import { title } from "process";
+import Question from "@/database/questions.model";
 
 interface SearchParams {
-  searchParams: Promise<{ [key: string]: string }>; //Directly returning the Promise object
+  searchParams: Promise<{ [key: string]: string }>;
 }
 
+interface QuestionsResponse {
+  questions: Question[];
+  isNext: boolean;
+}
 
 const test = async () => {
   try {
@@ -26,6 +33,7 @@ const test = async () => {
     return handleError(error);
   }
 };
+
 const Home = async ({ searchParams }: SearchParams) => {
   const session = await auth();
 
@@ -37,7 +45,7 @@ const Home = async ({ searchParams }: SearchParams) => {
     });
   }
 
-  const { page, pageSize, query, filter } = await searchParams; //Getting query as promise from searchParams
+  const { page, pageSize, query, filter } = await searchParams;
   const { data, error, success } = await getQuestions({
     page: Number(page) || 1,
     pageSize: Number(pageSize) || 10,
@@ -45,7 +53,7 @@ const Home = async ({ searchParams }: SearchParams) => {
     filter: filter || "",
   });
 
-  const { questions } = data || {};//Question will be fetched from the data, else empty object.
+  const { questions = [] } = (data as QuestionsResponse) || {};
   const filteredQuestions = questions.filter((question) => {
     if (query && question.title) {
       return question.title.toLowerCase().includes(query.toLowerCase());
@@ -72,22 +80,15 @@ const Home = async ({ searchParams }: SearchParams) => {
         />
       </section>
       <HomeFilter />
-      {success ? (
-        <div className="mt-10 flex w-full flex-col gap-6">
-          {questions && questions.length > 0 ? questions.map((question) => (
-            <QuestionCard key={question._id} question={question} />
-          )) : (
-            <div className="mt-10 flex w-full items-center justify-center">
-              <p className="text-dark-400_light700">No questions found</p>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="mt-10 flex w-full items-center justify-center">
-          <p className="text-dark-400_light700">{error?.message || "Failed to fetch questions"}</p>
-        </div>
-      )}
-
+      <DataRenderer success={success} error={error} data={questions} empty={EMPTY_QUESTION}
+        render={(questions: Question[]) => (
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {questions.map((question) => (
+              <QuestionCard key={question._id} question={question} />
+            ))}
+          </div>
+        )}
+      />
     </>
   );
 };
