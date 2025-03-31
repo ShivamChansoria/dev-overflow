@@ -1,5 +1,3 @@
-
-
 import TagCard from '@/components/cards/TagCard';
 import Preview from '@/components/Editor/Preview';
 import Metric from '@/components/Metric';
@@ -9,6 +7,10 @@ import { getTimeStamp } from '@/lib/utils';
 import Link from 'next/link';
 import React from 'react'
 import View from '../view';
+import { incrementViews, getQuestion } from '@/lib/actions/question.action';
+import { ITagDoc } from '@/database/tag.model';
+import { IQuestionDoc } from '@/database/questions.model';
+import { IUser } from '@/database/user.model';
 
 const sampleQuestion = {
     id: "q123",
@@ -91,9 +93,24 @@ const sampleQuestion = {
     },
 };
 
+interface PopulatedQuestion extends Omit<IQuestionDoc, 'author' | 'tags'> {
+    author: IUser;
+    tags: ITagDoc[];
+}
+
 const QuestionDetails = async ({ params }: RouteParams) => {
     const { id } = await params;
-    const content = sampleQuestion.content.toString();
+    const [_, { success, data: question }] = await Promise.all([
+        await incrementViews({ questionId: id }),
+        await getQuestion({ questionId: id })
+    ]); /*-------------------> Parallel Data requests for  */
+
+    if (!success || !question) {
+        return <div>Question not found</div>;
+    }
+
+    const populatedQuestion = question as PopulatedQuestion;
+
     return (
         <>
             <View questionId={id} />
@@ -105,36 +122,36 @@ const QuestionDetails = async ({ params }: RouteParams) => {
                             className='size-22 '
                             fallbackClassName='text-[10px]'
                         />
-                        <Link href={ROUTES.PROFILE(sampleQuestion.author._id)}>
-                            <p className='paragraph-semibold text-dark-100_light700'>{sampleQuestion.author.name}</p>
+                        <Link href={ROUTES.PROFILE(populatedQuestion.author._id)}>
+                            <p className='paragraph-semibold text-dark-100_light700'>{populatedQuestion.author.name}</p>
                         </Link>
                     </div>
                     <div className='flex w-full justify-end'>
                         <p>Votes</p>
                     </div>
                 </div>
-                <h2 className='h2-semibold text-dark-200_light900'>{sampleQuestion.title}</h2>
+                <h2 className='h2-semibold text-dark-200_light900'>{populatedQuestion.title}</h2>
             </div>
             <div className='mb-8 mt-5 flex flwx-wrap gap-4'>
                 <Metric imgUrl='/icons/clock.svg'
                     alt='clock icon'
-                    value={`asked ${getTimeStamp(new Date(sampleQuestion.createdAt))}`}
+                    value={`asked ${getTimeStamp(new Date(populatedQuestion.createdAt))}`}
                     title=''
                     textStyles='small-regular text-dark-400_light700' />
                 <Metric imgUrl='/icons/message.svg'
-                    alt='clock icon'
-                    value={`asked ${getTimeStamp(new Date(sampleQuestion.createdAt))}`}
-                    title=''
+                    alt='message icon'
+                    value={populatedQuestion.answers.length}
+                    title='Answers'
                     textStyles='small-regular text-dark-400_light700' />
                 <Metric imgUrl='/icons/eye.svg'
-                    alt='clock icon'
-                    value={sampleQuestion.views}
+                    alt='eye icon'
+                    value={populatedQuestion.views}
                     title='Views'
                     textStyles='small-regular text-dark-400_light700' />
             </div>
-            <Preview content={content} />
+            <Preview content={populatedQuestion.content} />
             <div className='mt-8 flex flex-wrap gap-2'>
-                {sampleQuestion.tags.map((tag: Tag) => (
+                {populatedQuestion.tags.map((tag: ITagDoc) => (
                     <TagCard key={tag._id}
                         _id={tag._id}
                         name={tag.name}

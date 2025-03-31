@@ -35,19 +35,26 @@
  * [Transaction Failed] → [Abort Transaction] → [Return Error Response]
  */
 
-import action from "@/lib/handlers/action";
-import {
-  AskQuestionSchema,
-  GetQuestionSchema,
-  IncrementViewsSchema,
-  PaginatedSearchParamsSchema,
-} from "../validation";
-import handleError from "../handlers/error";
 import mongoose, { FilterQuery } from "mongoose";
-import Question, { IQuestionDoc } from "@/database/questions.model";
-import Tag, { ITag, ITagDoc } from "@/database/tag.model";
+import Question from "@/database/questions.model";
+import Tag from "@/database/tag.model";
+import User from "@/database/user.model";
+import action from "@/lib/handlers/action";
+import handleError from "@/lib/handlers/error";
+import { GetQuestionSchema } from "@/lib/validation";
+import type { ActionResponse, ErrorResponse } from "@/lib/handlers/error";
+import { IQuestionDoc } from "@/database/questions.model";
+import { ITagDoc } from "@/database/tag.model";
 import TagQuestion from "@/database/tag-question.model";
 import { toast } from "sonner";
+import dbConnect from "@/lib/mongoose";
+import { revalidatePath } from "next/cache";
+import {
+  AskQuestionSchema,
+  PaginatedSearchParamsSchema,
+  IncrementViewsSchema,
+} from "../validation";
+
 /**
  * Creates a new question in the database
  * @param params - The question parameters (title, content, tags)
@@ -270,11 +277,11 @@ export async function editQuestion(
     await session.endSession();
   }
 }
+
 export async function getQuestion(
   params: GetQuestionParams
 ): Promise<ActionResponse<Question>> {
   // Step 1: Validate request parameters and check user authorization
-  // This ensures the request is properly formatted and the user is authenticated
   const validationResult = await action({
     params,
     schema: GetQuestionSchema,
@@ -282,28 +289,33 @@ export async function getQuestion(
   });
 
   // Step 2: Handle validation/authorization errors
-  // If validation fails or user is not authorized, return error response
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
   }
-  // Step 4: Start MongoDB transaction
-  // This ensures all database operations are atomic - either all succeed or all fail
-  const session = await mongoose.startSession();
-  session.startTransaction();
 
   // Step 3: Extract validated data and user ID
-  // Destructure the validated parameters and get the authenticated user's ID
   const { questionId } = validationResult.params!;
   const userId = validationResult?.session?.user?.id;
-  // console.log("Validation Result", validationResult)
 
   try {
+    // Ensure models are registered
+    await dbConnect();
+
     const question = await Question.findById(questionId)
-      .populate("tags")
-      .populate("author", "_id name image");
+      .populate({
+        path: "tags",
+        model: Tag,
+      })
+      .populate({
+        path: "author",
+        model: User,
+        select: "_id name image",
+      });
+
     if (!question) {
       throw new Error("Question not found");
     }
+
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (error) {
     return handleError(error) as ErrorResponse;
