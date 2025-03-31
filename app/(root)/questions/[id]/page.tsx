@@ -5,10 +5,10 @@ import Preview from '@/components/Editor/Preview';
 import Metric from '@/components/Metric';
 import UserAvatar from '@/components/UserAvatar';
 import ROUTES from '@/constants/routes';
-import logger from '@/lib/logger';
 import { getTimeStamp } from '@/lib/utils';
 import Link from 'next/link';
 import React from 'react'
+import View from '../view';
 
 const sampleQuestion = {
     id: "q123",
@@ -96,6 +96,7 @@ const QuestionDetails = async ({ params }: RouteParams) => {
     const content = sampleQuestion.content.toString();
     return (
         <>
+            <View questionId={id} />
             <div className='flex-end w-full flex-col'>
                 <div className='flex-end w-full flex-col gap-4'>
                     <div className='flex items-center gap-2'>

@@ -144,3 +144,6 @@ export const PaginatedSearchParamsSchema = z.object({
   query: z.string().optional(),
   filter: z.string().optional(),
 });
+export const IncrementViewsSchema = z.object({
+  questionId: z.string().min(1, { message: "Question ID is required." }),
+});
