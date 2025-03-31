@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import UserAvatar from "./UserAvatar";
 
 interface Props {
   imgUrl: string;
@@ -10,6 +11,7 @@ interface Props {
   textStyles: string;
   imgStyles?: string;
   isAuthor?: boolean;
+  author?: string;
 }
 
 const Metric = ({
@@ -21,24 +23,24 @@ const Metric = ({
   textStyles,
   imgStyles,
   isAuthor,
+  author,
 }: Props) => {
   const metricContent = (
-    <>
-      <Image
-        src={imgUrl}
-        width={16}
-        height={16}
-        alt="/"
-        className={`rounded-full 
-     object-contain ${imgStyles}`}
-      />
+    <div className="flex-center gap-1">
+      {imgUrl && (
+        <Image
+          src={imgUrl}
+          width={16}
+          height={16}
+          alt="/"
+          className={`rounded-full object-contain ${imgStyles}`}
+        />
+      )}
       <p className={`${textStyles} flex items-center gap-1`}>{value}</p>
-      <span
-        className={`small-regular line-clamp-1 ${isAuthor ? "max-sm:hidden" : ""}`}
-      >
+      <span className={`small-regular line-clamp-1 ${isAuthor ? "max-sm:hidden" : ""}`}>
         {title}
       </span>
-    </>
+    </div>
   ); //Having a default metric fragment which will be used for returning the metric content later on.
   //Checking if the imgUrl is present and then returning the metric content with the image and the value.
 

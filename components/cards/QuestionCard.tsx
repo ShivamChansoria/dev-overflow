@@ -39,6 +39,7 @@ const QuestionCard = ({
           href={ROUTES.PROFILE(author._id)}
           textStyles="body-medium text-dark400_light700"
           isAuthor
+          author={author}
         />
         <Metric
           imgUrl="/icons/like.svg"
