@@ -26,9 +26,16 @@
   },
   "typescript.tsdk": "node_modules/typescript/lib",
   "files.exclude": {
-    "**/.vscode": true,
-    "**/.next": true,
-    "**/node_modules": true,
-    "next-env.d.ts": true
-  }
+    "**/.vscode": false,
+    "**/.next": false,
+    "**/node_modules": false,
+    "next-env.d.ts": false,
+    "**/.git": false,
+    "**/.svn": false,
+    "**/.hg": false,
+    "**/CVS": false,
+    "**/.DS_Store": false,
+    "**/Thumbs.db": false
+  },
+  "json.schemas": []
 }
